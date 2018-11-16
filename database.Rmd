@@ -1,13 +1,14 @@
 ---
-title: "Database of borrowed lexicon in Daghestan"
+title: "Daghestanian loans database"
+author: 
 
-output: 
-    html_document: 
+output:
+  html_document:
     theme: spacelab
-    highlight: tango 
-    toc: yes 
+    toc: yes
+    toc_position: top
     toc_float: yes
-    smooth_scroll: false
+    smooth_scroll: true
     fig_cap: TRUE
 
 ---
@@ -16,7 +17,11 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
+
+## Introduction
+
 This *try-out* database contains wordlists collected as part of the [Daghestanian loans](https://ilcl.hse.ru/en/projects) project by the [Linguistic Convergence Laboratory](https://ilcl.hse.ru/en/) at NRU HSE. The aim of the 160-item shortlist, which is based on the [World Loanword Database questionnaire](https://wold.clld.org/), is to measure lexical contact on a micro-level. In other words, to quantify lexical convergence among the speech communities of minority languages on a village-level, and to detect fine-grained areal patterns beyond general observations on the spheres of influence of certain languages.
+
 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -28,8 +33,6 @@ library(lingtypology)
 library(DT)
 
 ```
-
-<br>
 
 ---
 
@@ -51,7 +54,7 @@ zilo$Entry <- paste(zilo$`Entry number`, zilo$`Target word`, sep = " ")
 
 # Drop some columns I don't want to show for now
 
-zilo_database <- zilo[-c(1:3, 6, 13:14, 16:20)]
+zilo_database <- zilo[-c(1:3, 6, 13, 16:20)]
 row.names(zilo_database) <- zilo$Entry
 
 ```
@@ -60,12 +63,10 @@ row.names(zilo_database) <- zilo$Entry
 
 # Create a searchable datatable with filters on top
 
-datatable(zilo_database, class = 'cell-border stripe', filter = 'top', options = list(pageLength = 50))
+datatable(zilo_database, class = 'cell-border stripe', filter = 'top', options = list(pageLength = 10))
 
 
 ```
-
-<br>
 
 ---
 
@@ -73,13 +74,10 @@ Version: `r Sys.Date()`. For questions or comments contact jh.verhees@gmail.com.
 
 ---
 
-<br>
 
 ## Map of the surveyed villages
 
 The map below shows the villages surveyed and the number of lists collected. White dots represent dictionary data. Hover over a dot to see the language it represents. When you click on a dot, a popup will appear that shows genetic info on the language, the name of the village or in case of the white dots, the resource used.
-
-<br>
 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -146,9 +144,11 @@ map.feature(lists$Language,
               pipe.data = .)
 ```
 
-<br>
 
-## The list
+---
+
+## The shortlist
+
 <br>
 
 Below is the shortlist of concepts and the Russian translation used to elicit in the field.
@@ -165,7 +165,7 @@ core <- zilo[!duplicated(zilo$`Source concept`),]
 core <- core[-c(1:3, 9:19)]
 
 
-datatable(core)
+datatable(core, rownames = FALSE, width = 300, options = list(dom = 't'))
 
 
 ```
@@ -210,7 +210,7 @@ plot(density(length$`Target word`), main = "Dispersion of wordlist length", xlab
 
 ### Number of loans in the sample by donor language
 
-<br>
+The graph below shows the number of words for each source across the sample.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -225,4 +225,146 @@ ggplot(loans, aes(x = `Supposed toplevel source`,
 ```
 
 <br>
+
+---
+
+## Pepper
+
+The maps below show the spread of different words for '(black) pepper' (*piper nigrum*) among languages spoken in the eastern part of the North Caucasus region, including East Caucasian / Nakh-Daghestanian languages and local varieties of Turkic. Most of the attested lexemes are borrowed (from Turkic to East Caucasian), and their distribution on the map reflects the areal influence of different L2s. The southern part of the area, for example, is dominated by Azerbaijani. In the north-central area, patterns of influence are more complicated: Avar is a major L2, but it has several words for 'pepper', which in turn were borrowed from other languages. Languages spoken in the same area could have borrowed these words from Avar, or from their original source (e.g. Kumyk or Nogai). In a few villages, the Russian word *perec* is commonly used.
+
+```{r, echo = FALSE, include = TRUE, message = FALSE, warning = FALSE, fig.width=10}
+
+setwd("~/Samira")
+
+# packages
+
+library(tidyverse)
+library(lingtypology)
+library(DT)
+
+# data
+
+pepper <- read_tsv("pepper.csv")
+
+```
+
 <br>
+
+### Total entries
+
+```{r, echo = FALSE, include = TRUE, message = FALSE, warning = FALSE}
+
+count <- pepper  %>%
+  group_by(Type) %>%
+  summarise(word = n())
+
+colnames(count)[2] <- "n" 
+
+total <- c("total", sum(count$n))
+
+count <- rbind(count, total)
+
+datatable(count, rownames = FALSE, width = 200, options = list(dom = 't'))
+
+```
+
+<br>
+
+### Data
+
+The data are a combination of fieldwork, entries from the [IDS database](https://ids.clld.org/) and various dictionaries. Click on a dot to view:
+
+* Language and genetic affiliation
+* **Word:** form of the lexeme
+* **Location:** coordinates of the datapoint and the associated location, which can be a certain village or a datapoint from the [Glottolog](https://glottolog.org/) database
+* Type of resource used (e.g. a dictionary, or fieldwork)
+* Reference to a specific source; in case of fieldwork, codenames are used.
+
+Ideally, the table will be updated continuously with more precise information from specific villages. Full data is available [here](http://github.com/sverhees/loandatabase/). Contact jh.verhees@gmail.com for questions, comments, complaints or corrections.
+
+---
+
+<br>
+
+### Map 1. Distribution of *istiot* vs. other words
+
+```{r, echo = FALSE, include = TRUE, message = FALSE, warning = FALSE, fig.width=10}
+
+
+
+
+# map 1
+
+map.feature(pepper$Language,
+            features = pepper$`General type`,
+            legend = FALSE,
+            density.estimation = pepper$`General type`,
+            density.estimation.color = "magma",
+            density.legend.position = "topright",
+            latitude = pepper$Lat,
+            longitude = pepper$Lon,
+            color = "magma",
+            tile = c("Esri.WorldGrayCanvas"),
+            zoom.control = TRUE,
+            popup = paste(aff.lang(pepper$Language), # create pop-up showing language and genetic affiliation
+                          "<br>",
+                          "<b>Word: </b>",  
+                          pepper$Word, # + the word for 'pepper'
+                          "<br>",
+                          "<b>Location: </b>", # + the location represented by the dot
+                          "[",
+                          lat.lang(pepper$Language), # + latitude
+                          ",",
+                          long.lang(pepper$Language), # + longitude
+                          "]",
+                          pepper$Village, # + village name or location name
+                          "<br>",
+                          pepper$`Resource type`, # + information source type
+                          ":",
+                          pepper$Reference)) # + specific information source
+
+
+```
+
+<br>
+
+---
+
+### Map 2. Different words for 'pepper'
+
+```{r, echo = FALSE, include = TRUE, message = FALSE, warning = FALSE, fig.width=10}
+
+
+# remove Persian
+
+pepper <- pepper[!pepper$Language == 'Western Farsi',]
+
+
+# map 2
+
+map.feature(pepper$Language,
+            features = pepper$Type,
+            latitude = pepper$Lat,
+            longitude = pepper$Lon,
+            color = "magma",
+            zoom.control = TRUE,
+            popup = paste(aff.lang(pepper$Language), # create pop-up showing language and genetic affiliation
+                          "<br>",
+                          "<b>Word: </b>",  
+                          pepper$Word, # + the word for 'pepper'
+                          "<br>",
+                          "<b>Location: </b>", # + the location represented by the dot
+                          "[",
+                          lat.lang(pepper$Language), # + latitude
+                          ",",
+                          long.lang(pepper$Language), # + longitude
+                          "]",
+                          pepper$Village, # + village name or location name
+                          "<br>",
+                          pepper$`Resource type`, # + information source type
+                          ":",
+                          pepper$Reference)) # + specific information source
+
+```
+
+
